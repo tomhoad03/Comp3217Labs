@@ -1,5 +1,8 @@
 tpm2_flushcontext -t
 
+tpm2_startup -c -T mssim:host=localhost,port=2321
+export TPM2TOOLS_TCTI=mssim:host=localhost,port=2321
+
 tpm2_createprimary -C e -c primary.ctx
 tpm2_create -G rsa -u rsa.pub -r rsa.priv -C primary.ctx
 
