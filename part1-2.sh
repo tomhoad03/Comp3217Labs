@@ -1,4 +1,5 @@
 export TPM2TOOLS_TCTI=mssim:host=localhost,port=2321
+tpm2_clear
 tpm2_startup -c
 
 tpm2_flushcontext -t
@@ -23,5 +24,3 @@ tpm2_flushcontext -t
 # sign the data and verify
 tpm2_sign -c rsa.ctx -g sha256 -o sig.rssa message.dat
 tpm2_verifysignature -c rsa.ctx -g sha256 -s sig.rssa -m message.dat
-
-tpm2_clear

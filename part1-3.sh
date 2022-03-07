@@ -1,4 +1,5 @@
 export TPM2TOOLS_TCTI=mssim:host=localhost,port=2321
+tpm2_clear
 tpm2_startup -c
 
 tpm2_flushcontext -t
@@ -16,5 +17,3 @@ do
 	echo $i
 	tpm2_load -C srk.ctx -u srk.pub -r srk.priv -c rsasrk.ctx -P $i
 done
-
-tpm2_clear
