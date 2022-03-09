@@ -4,20 +4,14 @@ tpm2_startup -c
 
 tpm2_flushcontext -t
 
-# create a new endorsment key
-tpm2_createek -G rsa -c ek.ctx
-#tpm2_readpublic -c ek.ctx
-
-tpm2_flushcontext -t
-
-# create a key that only the admin can use
+# create an endorsment key that only the admin can use
 tpm2_createprimary -C o -c primary.ctx
-tpm2_create -G rsa -u rsa.pub -r rsa.priv -C ek.ctx
+tpm2_create -G rsa -u rsa.pub -r rsa.priv -C primary.ctx
 
 tpm2_flushcontext -t
 
 # load the signing key
-tpm2_load -C ek.ctx -u rsa.pub -r rsa.priv -c rsa.ctx
+tpm2_load -C primary.ctx -u rsa.pub -r rsa.priv -c rsa.ctx
 
 tpm2_flushcontext -t
 
