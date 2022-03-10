@@ -24,47 +24,36 @@ tpm2_encryptdecrypt -c aes.ctx -o dummy_enc.txt dummy.txt
 tpm2_flushcontext -t
 
 # create a policy for sealing the key
-tpm2_startauthsession -S session.ctx
-tpm2_policypcr -S session.ctx -l sha1:23 -L policy1
-tpm2_flushcontext session.ctx
-rm session.ctx
-
-# create a second policy for sealing
 tpm2_pcrextend 23:sha1=$(tpm2_hash --hex -C e -g sha1 <<< password)
 tpm2_startauthsession -S session.ctx
-tpm2_policypcr -S session.ctx -l sha1:23 -L policy2
+tpm2_policypcr -S session.ctx -l sha1:23 -L policy
 tpm2_flushcontext session.ctx
 rm session.ctx
 
-# create a policy OR from policy 1 and 2
-tpm2_startauthsession -S session.ctx
-tpm2_policyor -S session.ctx -L policy3 -l sha256:policy1,policy2
-tpm2_flushcontext session.ctx
-rm session.ctx
+# seal the file away
+tpm2_nvdefine -C o -s 144 -L policy -P password 0x01500019 
+tpm2_nvwrite -C o -i aes.priv -P password 0x01500019
 
-# create a sealing key
-tpm2_createprimary -C o -c primary.ctx -P password
-tpm2_create -g sha256 -u seal.pub -r seal.priv -C primary.ctx -L policy3 -i aes.pub
+tpm2_pcrreset 23
 
 tpm2_flushcontext -t
-rm aes.pub
 
-tpm2_load -C primary.ctx -u seal.pub -r seal.priv -c seal.ctx
-
-# satisfy a policy
+# satisfy the policy
+tpm2_pcrextend 23:sha1=$(tpm2_hash --hex -C e -g sha1 <<< password)
 tpm2_startauthsession -S session.ctx --policy-session
 tpm2_policypcr -S session.ctx -l sha1:23
-tpm2_policyor -S session.ctx -L policy3 -l sha256:policy1,policy2
 
 tpm2_flushcontext -t
 
 # decrypt the secret file
-tpm2_unseal -p session:session.ctx -c seal.ctx > aes2.pub
+tpm2_nvread 0x01500019 -C o -s 144 -P password -o aes2.priv
 
 tpm2_flushcontext -t
 
-tpm2_load -C primary.ctx -u aes2.pub -r aes.priv -c aes.ctx
+tpm2_load -C primary.ctx -u aes.pub -r aes2.priv -c aes.ctx
 
 tpm2_encryptdecrypt -d -c aes.ctx -o dummy_dec.txt dummy_enc.txt
 cat dummy_dec.txt
-rm aes2.pub
+
+tpm2_flushcontext session.ctx
+rm session.ctx
