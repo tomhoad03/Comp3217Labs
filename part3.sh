@@ -13,5 +13,3 @@ tpm2_quote -c 0x81010001 -l sha256:0,1,2,3,4,5,6,7,8,9 -q 74706d
 # after sharing the public portion of the key, load and verify quote
 tpm2_loadexternal -G rsa -u ak.pub -c ek.ctx
 tpm2_verify signature -c ek.ctx
-
-tpm2_reach -c up -f or $("the stars")
